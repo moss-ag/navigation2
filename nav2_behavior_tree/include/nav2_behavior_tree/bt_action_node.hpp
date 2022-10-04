@@ -61,6 +61,9 @@ public:
     server_timeout_ =
       config().blackboard->template get<std::chrono::milliseconds>("server_timeout");
     getInput<std::chrono::milliseconds>("server_timeout", server_timeout_);
+    server_wait_timeout_ =
+      config().blackboard->template get<std::chrono::milliseconds>("server_wait_timeout");
+    getInput<std::chrono::milliseconds>("server_wait_timeout", server_wait_timeout_);
 
     // Initialize the input and output messages
     goal_ = typename ActionT::Goal();
@@ -92,13 +95,14 @@ public:
     action_client_ = rclcpp_action::create_client<ActionT>(node_, action_name, callback_group_);
 
     // Make sure the server is actually there before continuing
-    RCLCPP_DEBUG(node_->get_logger(), "Waiting for \"%s\" action server", action_name.c_str());
-    if (!action_client_->wait_for_action_server(1s)) {
+    RCLCPP_INFO(node_->get_logger(), "Waiting for \"%s\" action server", action_name.c_str());
+    if (!action_client_->wait_for_action_server(server_wait_timeout_)) {
       RCLCPP_ERROR(
-        node_->get_logger(), "\"%s\" action server not available after waiting for 1 s",
-        action_name.c_str());
+        node_->get_logger(), "\"%s\" action server not available after waiting for %sms",
+        action_name.c_str(), std::to_string(server_wait_timeout_.count()).c_str());
       throw std::runtime_error(std::string("Action server %s not available", action_name.c_str()));
     }
+    RCLCPP_INFO(node_->get_logger(), "Connected to \"%s\" action server", action_name.c_str());
   }
 
   /**
@@ -111,7 +115,8 @@ public:
   {
     BT::PortsList basic = {
       BT::InputPort<std::string>("server_name", "Action server name"),
-      BT::InputPort<std::chrono::milliseconds>("server_timeout")
+      BT::InputPort<std::chrono::milliseconds>("server_timeout"),
+      BT::InputPort<std::chrono::milliseconds>("server_wait_timeout")
     };
     basic.insert(addition.begin(), addition.end());
 
@@ -183,6 +188,13 @@ public:
    */
   BT::NodeStatus tick() override
   {
+    if (!action_client_->action_server_is_ready()) {
+      RCLCPP_ERROR(
+        node_->get_logger(), "\"%s\" action server is not available.",
+        action_name_.c_str());
+      return BT::NodeStatus::FAILURE;
+    }
+
     // first step to be done only at the beginning of the Action
     if (status() == BT::NodeStatus::IDLE) {
       // setting the status to RUNNING to notify the BT Loggers (if any)
@@ -436,6 +448,8 @@ protected:
   // The timeout value while waiting for response from a server when a
   // new action goal is sent or canceled
   std::chrono::milliseconds server_timeout_;
+
+  std::chrono::milliseconds server_wait_timeout_;
 
   // The timeout value for BT loop execution
   std::chrono::milliseconds bt_loop_duration_;
