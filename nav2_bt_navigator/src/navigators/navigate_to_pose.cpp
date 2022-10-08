@@ -212,7 +212,11 @@ NavigateToPoseNavigator::initializeGoalPose(ActionT::Goal::ConstSharedPtr goal)
   start_time_ = clock_->now();
   auto blackboard = bt_action_server_->getBlackboard();
   blackboard->set<int>("number_recoveries", 0);  // NOLINT
-
+  // Add a blackboard variable to set planner and controller
+  blackboard->set<std::string>("planner_id", goal->planner_id);  // NOLINT
+  RCLCPP_WARN(logger_, "planner_id: %s", goal->planner_id.c_str());
+  blackboard->set<std::string>("controller_id", goal->controller_id);  // NOLINT
+  RCLCPP_WARN(logger_, "controller_id: %s", goal->controller_id.c_str());
   // Update the goal pose on the blackboard
   blackboard->set<geometry_msgs::msg::PoseStamped>(goal_blackboard_id_, goal->pose);
 }
