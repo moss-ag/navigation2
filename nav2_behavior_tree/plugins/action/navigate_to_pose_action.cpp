@@ -37,6 +37,8 @@ void NavigateToPoseAction::on_tick()
     return;
   }
   getInput("behavior_tree", goal_.behavior_tree);
+  getInput("planner_id", goal_.planner_id);
+  getInput("controller_id", goal_.controller_id);
 }
 
 }  // namespace nav2_behavior_tree

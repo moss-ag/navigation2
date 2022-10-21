@@ -57,6 +57,8 @@ public:
       {
         BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Destination to plan to"),
         BT::InputPort<std::string>("behavior_tree", "Behavior tree to run"),
+        BT::InputPort<std::string>("planner_id", "Planner to use"),
+        BT::InputPort<std::string>("controller_id", "Controller to use"),
       });
   }
 };
