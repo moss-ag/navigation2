@@ -18,13 +18,14 @@
 #include <memory>
 #include <string>
 #include <fstream>
+#include <regex>
 #include <set>
 #include <exception>
 #include <vector>
 
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "nav2_msgs/action/navigate_to_pose.hpp"
 #include "nav2_behavior_tree/bt_action_server.hpp"
-#include "ament_index_cpp/get_package_share_directory.hpp"
 
 namespace nav2_behavior_tree
 {
@@ -165,11 +166,20 @@ bool BtActionServer<ActionT>::loadBehaviorTree(const std::string & bt_xml_filena
     return true;
   }
 
+  std::regex package_regex(R"(package:\/\/([A-Za-z0-9]+(_[A-Za-z0-9]+)+)\/(.*))");
+  std::smatch sm;
+
+  std::string filepath = filename;
+  if (std::regex_search(filepath, sm, package_regex)) {
+    filepath = ament_index_cpp::get_package_share_directory(sm.str(1)) + "/" + sm.str(3);
+  }
+
+
   // Read the input BT XML from the specified file into a string
-  std::ifstream xml_file(filename);
+  std::ifstream xml_file(filepath);
 
   if (!xml_file.good()) {
-    RCLCPP_ERROR(logger_, "Couldn't open input XML file: %s", filename.c_str());
+    RCLCPP_ERROR(logger_, "Couldn't open input XML file: %s", filepath.c_str());
     return false;
   }
 
