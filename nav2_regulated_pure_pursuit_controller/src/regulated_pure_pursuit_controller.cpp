@@ -105,8 +105,6 @@ void RegulatedPurePursuitController::configure(
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".rotate_to_heading_min_angle", rclcpp::ParameterValue(0.785));
   declare_parameter_if_not_declared(
-    node, plugin_name_ + ".rotate_to_heading_min_angular_vel", rclcpp::ParameterValue(0.2));
-  declare_parameter_if_not_declared(
     node, plugin_name_ + ".max_angular_accel", rclcpp::ParameterValue(3.2));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".allow_reversing", rclcpp::ParameterValue(false));
@@ -163,9 +161,6 @@ void RegulatedPurePursuitController::configure(
     regulated_linear_scaling_min_speed_);
   node->get_parameter(plugin_name_ + ".use_rotate_to_heading", use_rotate_to_heading_);
   node->get_parameter(plugin_name_ + ".rotate_to_heading_min_angle", rotate_to_heading_min_angle_);
-  node->get_parameter(
-    plugin_name_ + ".rotate_to_heading_min_angular_vel",
-    rotate_to_heading_min_angular_vel_);
   node->get_parameter(plugin_name_ + ".max_angular_accel", max_angular_accel_);
   node->get_parameter(plugin_name_ + ".allow_reversing", allow_reversing_);
   node->get_parameter("controller_frequency", control_frequency);
@@ -385,20 +380,13 @@ void RegulatedPurePursuitController::rotateToHeading(
 {
   // Rotate in place using max angular velocity / acceleration possible
   linear_vel = 0.0;
+  const double sign = angle_to_path > 0.0 ? 1.0 : -1.0;
+  angular_vel = sign * rotate_to_heading_angular_vel_;
 
   const double & dt = control_duration_;
-  const double min_feasible_angular_speed = std::min(
-    0.0,
-    curr_speed.angular.z - max_angular_accel_ *
-    dt);
+  const double min_feasible_angular_speed = curr_speed.angular.z - max_angular_accel_ * dt;
   const double max_feasible_angular_speed = curr_speed.angular.z + max_angular_accel_ * dt;
-
-  angular_vel = rotate_to_heading_angular_vel_;
   angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
-  angular_vel = std::max(angular_vel, rotate_to_heading_min_angular_vel_);
-
-  const double sign = angle_to_path > 0.0 ? 1.0 : -1.0;
-  angular_vel = sign * angular_vel;
 }
 
 geometry_msgs::msg::Point RegulatedPurePursuitController::circleSegmentIntersection(
