@@ -46,8 +46,10 @@ public:
   BtActionNode(
     const std::string & xml_tag_name,
     const std::string & action_name,
-    const BT::NodeConfiguration & conf)
-  : BT::ActionNodeBase(xml_tag_name, conf), action_name_(action_name)
+    const BT::NodeConfiguration & conf,
+    bool connect_on_tick = false)
+  : BT::ActionNodeBase(xml_tag_name, conf), action_name_(action_name), connect_on_tick_(
+      connect_on_tick)
   {
     node_ = config().blackboard->template get<rclcpp::Node::SharedPtr>("node");
     callback_group_ = node_->create_callback_group(
@@ -73,7 +75,9 @@ public:
     if (getInput("server_name", remapped_action_name)) {
       action_name_ = remapped_action_name;
     }
-    createActionClient(action_name_);
+    if (!connect_on_tick_) {
+      createActionClient(action_name_);
+    }
 
     // Give the derive class a chance to do any initialization
     RCLCPP_DEBUG(node_->get_logger(), "\"%s\" BtActionNode initialized", xml_tag_name.c_str());
@@ -188,7 +192,7 @@ public:
    */
   BT::NodeStatus tick() override
   {
-    if (!action_client_->action_server_is_ready()) {
+    if (!connect_on_tick_ && !action_client_->action_server_is_ready()) {
       RCLCPP_ERROR(
         node_->get_logger(), "\"%s\" action server is not available.",
         action_name_.c_str());
@@ -197,6 +201,10 @@ public:
 
     // first step to be done only at the beginning of the Action
     if (status() == BT::NodeStatus::IDLE) {
+      if (connect_on_tick_) {
+        createActionClient(action_name_);
+      }
+
       // setting the status to RUNNING to notify the BT Loggers (if any)
       setStatus(BT::NodeStatus::RUNNING);
 
@@ -428,6 +436,7 @@ protected:
   }
 
   std::string action_name_;
+  bool connect_on_tick_;
   typename std::shared_ptr<rclcpp_action::Client<ActionT>> action_client_;
 
   // All ROS2 actions have a goal and a result
