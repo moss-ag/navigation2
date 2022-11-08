@@ -81,6 +81,7 @@ void SmacPlannerLattice::configure(
       ament_index_cpp::get_package_share_directory("nav2_smac_planner") +
       "/sample_primitives/5cm_resolution/0.5m_turning_radius/ackermann/output.json"));
   node->get_parameter(name + ".lattice_filepath", _search_info.lattice_filepath);
+  _search_info.lattice_filepath = getFilepath(_search_info.lattice_filepath);
   nav2_util::declare_parameter_if_not_declared(
     node, name + ".cache_obstacle_heuristic", rclcpp::ParameterValue(false));
   node->get_parameter(name + ".cache_obstacle_heuristic", _search_info.cache_obstacle_heuristic);
@@ -409,7 +410,7 @@ SmacPlannerLattice::dynamicParametersCallback(std::vector<rclcpp::Parameter> par
         if (_smoother) {
           reinit_smoother = true;
         }
-        _search_info.lattice_filepath = parameter.as_string();
+        _search_info.lattice_filepath = getFilepath(parameter.as_string());
         _metadata = LatticeMotionTable::getLatticeMetadata(_search_info.lattice_filepath);
         _search_info.minimum_turning_radius =
           _metadata.min_turning_radius / (_costmap->getResolution());

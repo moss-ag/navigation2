@@ -141,15 +141,7 @@ MotionPrimitivePtrs LatticeMotionTable::getMotionPrimitives(const NodeLattice * 
 
 LatticeMetadata LatticeMotionTable::getLatticeMetadata(const std::string & lattice_filepath)
 {
-  std::regex package_regex(R"(package:\/\/([A-Za-z0-9]+(_[A-Za-z0-9]+)+)\/(.*))");
-  std::smatch sm;
-
-  std::string filepath = lattice_filepath;
-  if (std::regex_search(filepath, sm, package_regex)) {
-    filepath = ament_index_cpp::get_package_share_directory(sm.str(1)) + "/" + sm.str(3);
-  }
-  
-  std::ifstream lattice_file(filepath);
+  std::ifstream lattice_file(lattice_filepath);
   if (!lattice_file.is_open()) {
     throw std::runtime_error("Could not open lattice file!");
   }

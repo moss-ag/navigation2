@@ -154,6 +154,17 @@ inline void fromJsonToMotionPrimitive(
   }
 }
 
+inline std::string getFilepath(const std::string & filepath) {
+  std::regex package_regex(R"(package:\/\/([A-Za-z0-9]+(_[A-Za-z0-9]+)+)\/(.*))");
+  std::smatch sm;
+
+  std::string full_filepath = filepath;
+  if (std::regex_search(full_filepath, sm, package_regex)) {
+    full_filepath = ament_index_cpp::get_package_share_directory(sm.str(1)) + "/" + sm.str(3);
+  }
+  return full_filepath;
+}
+
 }  // namespace nav2_smac_planner
 
 #endif  // NAV2_SMAC_PLANNER__UTILS_HPP_
