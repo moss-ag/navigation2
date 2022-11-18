@@ -56,6 +56,7 @@ BtNavigator::BtNavigator(const rclcpp::NodeOptions & options)
     "nav2_truncate_path_action_bt_node",
     "nav2_truncate_path_local_action_bt_node",
     "nav2_goal_updater_node_bt_node",
+    "nav2_goal_transformer_node_bt_node",
     "nav2_recovery_node_bt_node",
     "nav2_pipeline_sequence_bt_node",
     "nav2_round_robin_node_bt_node",

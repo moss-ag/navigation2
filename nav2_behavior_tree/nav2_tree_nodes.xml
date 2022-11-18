@@ -171,6 +171,7 @@
         <input_port name="goal">Destination</input_port>
         <input_port name="global_frame">Reference frame</input_port>
         <input_port name="robot_base_frame">Robot base frame</input_port>
+        <input_port name="goal_reached_tol">Goal reached threshold</input_port>
     </Condition>
 
     <Condition ID="IsStuck"/>
@@ -239,6 +240,12 @@
 
     <Decorator ID="GoalUpdater">
       <input_port name="input_goal">Original goal in</input_port>
+      <output_port name="output_goal">Output goal set by subscription</output_port>
+    </Decorator>
+
+    <Decorator ID="GoalTransformer">
+      <input_port name="input_goal">Original goal in</input_port>
+      <input_port default="map" name="publishing_frame">Frame to convert goal into before publishing</input_port>
       <output_port name="output_goal">Output goal set by subscription</output_port>
     </Decorator>
 
