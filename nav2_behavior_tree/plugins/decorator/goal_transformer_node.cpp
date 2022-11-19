@@ -38,8 +38,15 @@ inline BT::NodeStatus GoalTransformer::tick()
 
   RCLCPP_INFO(
     node_->get_logger(), "Transforming goal from %s to %s", goal.header.frame_id.c_str(), publishing_frame.c_str());  
-  tf_->lookupTransform(publishing_frame, goal.header.frame_id, tf2::TimePointZero, 1000ms);
-  nav2_util::transformPoseInTargetFrame(goal, msg_transformed, *tf_, publishing_frame);
+
+  RCLCPP_INFO(node_->get_logger(), "Goal recieved timestamp: %ds, %dns", goal.header.stamp.sec, goal.header.stamp.nanosec);
+  tf_->lookupTransform(publishing_frame, goal.header.frame_id, tf2::TimePointZero, 3000ms);
+  RCLCPP_INFO(
+    node_->get_logger(), "Looked up transform");  
+  nav2_util::transformPoseInTargetFrame(goal, msg_transformed, *tf_, publishing_frame, 1.0);
+  msg_transformed.header.stamp = node_->now();
+  RCLCPP_INFO(
+    node_->get_logger(), "Transformed pose"); 
 
   setOutput("output_goal", msg_transformed);
   return child_node_->executeTick();
