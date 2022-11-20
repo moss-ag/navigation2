@@ -14,6 +14,7 @@
 
 #include "nav2_bt_navigator/bt_navigator.hpp"
 
+#include <chrono>
 #include <memory>
 #include <string>
 #include <utility>
@@ -24,6 +25,8 @@
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
 #include "nav2_behavior_tree/bt_conversions.hpp"
+
+using namespace std::chrono_literals;
 
 namespace nav2_bt_navigator
 {
@@ -97,7 +100,7 @@ BtNavigator::on_configure(const rclcpp_lifecycle::State & /*state*/)
 {
   RCLCPP_INFO(get_logger(), "Configuring");
 
-  tf_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_ = std::make_shared<tf2_ros::Buffer>(get_clock(), tf2::Duration(30s));
   auto timer_interface = std::make_shared<tf2_ros::CreateTimerROS>(
     get_node_base_interface(), get_node_timers_interface());
   tf_->setCreateTimerInterface(timer_interface);
